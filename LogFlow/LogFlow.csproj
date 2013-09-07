@@ -44,12 +44,15 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Abstracts\AbstractWriter.cs" />
-    <Compile Include="Enums\Target.cs" />
+    <Compile Include="Enums\LogTarget.cs" />
+    <Compile Include="Enums\RollOn.cs" />
+    <Compile Include="Extenders\DateTimeExtenders.cs" />
+    <Compile Include="Extenders\StringExtenders.cs" />
     <Compile Include="Writers\ConsoleWriter.cs" />
     <Compile Include="Writers\BlobStorageWriter.cs" />
     <Compile Include="Writers\EventLogWriter.cs" />
     <Compile Include="Writers\TableStorageWriter.cs" />
-    <Compile Include="Writers\FileWriter.cs" />
+    <Compile Include="Writers\RollingFileWriter.cs" />
     <Compile Include="Helpers\Logger.cs" />
     <Compile Include="Primatives\LogItem.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

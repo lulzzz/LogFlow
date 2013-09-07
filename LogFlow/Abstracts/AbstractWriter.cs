@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Threading.Tasks;
 
@@ -6,23 +7,42 @@ namespace LogFlow
 {
     public abstract class AbstractWriter
     {
-        public AbstractWriter(Target target, 
-            LogLevel minLevel = LogLevel.Error)
+        private LogLevel minLevel;
+
+        public AbstractWriter(LogTarget target, int batchSize, TimeSpan timeout)
         {
-            Contract.Requires(Enum.IsDefined(typeof(Target), target));
-            Contract.Requires(Enum.IsDefined(typeof(LogLevel), target));
+            Contract.Requires(Enum.IsDefined(typeof(LogTarget), target));
+            Contract.Requires(batchSize >= 1);
+            Contract.Requires(timeout >= TimeSpan.Zero);
 
             Target = target;
-            MinLevel = minLevel;
+            BatchSize = batchSize;
+            Timeout = timeout;
+
+            MinLevel = LogLevel.Error;
         }
 
-        public Target Target { get; private set; }
+        public LogTarget Target { get; private set; }
+        public int BatchSize { get; private set; }
+        public TimeSpan Timeout { get; private set; }
 
-        public LogLevel MinLevel { get; set; }
+        public LogLevel MinLevel
+        {
+            get
+            {
+                return minLevel;
+            }
+            set
+            {
+                Contract.Requires(Enum.IsDefined(typeof(LogLevel), value));
+
+                minLevel = value;
+            }
+        }
 
         internal abstract void Setup();
         internal abstract void Teardown();
 
-        protected abstract Task WriteAsync(LogItem logItem);
+        internal abstract Task WriteAsync(IEnumerable<LogItem> logItems);
     }
 }

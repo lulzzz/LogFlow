@@ -1,11 +1,11 @@
 ﻿namespace LogFlow
 {
-    public enum Target
+    public enum LogTarget
     {
         BlobStorage,
         Console,
         EventLog,
-        File,
+        RollingFile,
         TableStorage
     }
 }

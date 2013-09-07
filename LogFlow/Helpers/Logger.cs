@@ -18,39 +18,34 @@ namespace LogFlow
 
         private bool disposed = false;
 
-        public Logger(IEnumerable<AbstractWriter> appenders)
+        public Logger(params AbstractWriter[] writers)
         {
-            Contract.Requires(appenders != null);
+            Contract.Requires(writers != null);
 
-            this.writers = appenders.ToList();
+            this.writers = writers.ToList();
 
             cts = new CancellationTokenSource();
 
-            var buffer = new BufferBlock<LogItem>(
-                new DataflowBlockOptions()
-                {
-                    CancellationToken = cts.Token
-                });
-
-            foreach(var writer in this.writers)
+            foreach (var writer in this.writers)
             {
                 writer.Setup();
 
-                var writerBlock = new ActionBlock<LogItem>(
-                    async logItem =>
+                var writerBlock = new ActionBlock<LogItem[]>(
+                    async logItems =>
                     {
-                        //await writer.WriteLineAsync(s);
+                        await writer.WriteAsync(logItems);
+
 
                         //if (autoFlush)
-                        //    await writer.FlushAsync();
+                        //await writer.FlushAsync();
                     },
                     new ExecutionDataflowBlockOptions()
                     {
                         MaxDegreeOfParallelism = 1
                     });
 
-                //writerBlock.Completion.ContinueWith(
-                //    task => writer.Dispose());
+                writerBlock.Completion.ContinueWith(
+                    task => writer.Teardown());
             }
         }
 

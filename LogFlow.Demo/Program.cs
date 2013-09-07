@@ -10,6 +10,9 @@ namespace LogFlow.Demo
     {
         static void Main(string[] args)
         {
+            var fileWriter = new RollingFileWriter("Logs", true);
+
+            var logger = new Logger(null);
         }
     }
 }
