@@ -49,6 +49,7 @@
     <Compile Include="Extenders\DateTimeExtenders.cs" />
     <Compile Include="Extenders\StringExtenders.cs" />
     <Compile Include="Extenders\TaskExtenders.cs" />
+    <Compile Include="Primatives\GenericArgs.cs" />
     <Compile Include="Writers\ConsoleWriter.cs" />
     <Compile Include="Writers\BlobStorageWriter.cs" />
     <Compile Include="Writers\EventLogWriter.cs" />

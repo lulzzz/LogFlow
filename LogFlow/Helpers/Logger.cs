@@ -1,7 +1,7 @@
 ﻿using System;
-using System.Linq;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
@@ -10,12 +10,15 @@ namespace LogFlow
 {
     public sealed class Logger : IDisposable
     {
-        private readonly List<BufferBlock<LogItem>> bufferBlocks;
-        private readonly List<ActionBlock<LogItem[]>> writerBlocks;
+        private bool disposed = false;
 
         private CancellationTokenSource cts;
 
-        private bool disposed = false;
+        private readonly List<BufferBlock<LogItem>> bufferBlocks;
+        private readonly List<ActionBlock<LogItem[]>> writerBlocks;
+
+        public event EventHandler<GenericArgs<AggregateException>> OnFailure;
+        public event EventHandler OnCancelled;
 
         public Logger(params AbstractWriter[] writers)
         {
@@ -57,8 +60,8 @@ namespace LogFlow
                     },
                     new ExecutionDataflowBlockOptions()
                     {
-                        //SingleProducerConstrained = true,
-                        CancellationToken = cts.Token
+                        CancellationToken = cts.Token,
+                        SingleProducerConstrained = true                        
                     });
 
                 var writerBlock = new ActionBlock<LogItem[]>(
@@ -68,10 +71,10 @@ namespace LogFlow
                     },
                     new ExecutionDataflowBlockOptions()
                     {
-                        MaxDegreeOfParallelism = 1
+                        MaxDegreeOfParallelism = 1,
+                        CancellationToken = cts.Token,
+                        SingleProducerConstrained = true
                     });
-
-                writerBlocks.Add(writerBlock);
 
                 writerBlock.Completion.ContinueWith(task => writer.Teardown());
 
@@ -79,6 +82,7 @@ namespace LogFlow
                 bufferBlock.LinkTo(timeoutBlock);
                 batchBlock.LinkTo(writerBlock);
 
+                writerBlocks.Add(writerBlock);
                 bufferBlocks.Add(bufferBlock);
 
                 timeoutBlock.HandleCompletion(batchBlock);
@@ -99,6 +103,11 @@ namespace LogFlow
             GC.SuppressFinalize(this);
         }
 
+        public void Cancel()
+        {
+            cts.Cancel();
+        }
+
         private void Dispose(bool disposing)
         {
             if (disposed)
@@ -112,26 +121,24 @@ namespace LogFlow
                 try
                 {
                     Task.WaitAll(writerBlocks.Select(wb => wb.Completion).ToArray());
-
-                    //Log(Status.Info, null, "Finished!!");
                 }
                 catch (AggregateException errors)
                 {
-                    //if (OnFailure != null)
-                    //    OnFailure(this, new GenericArgs<AggregateException>(errors));
+                    if (OnFailure != null)
+                        OnFailure(this, new GenericArgs<AggregateException>(errors));
                 }
                 catch (TaskCanceledException)
                 {
-                    //if (OnCancelled != null)
-                    //    OnCancelled(this, EventArgs.Empty);
+                    if (OnCancelled != null)
+                        OnCancelled(this, EventArgs.Empty);
                 }
                 catch (Exception error)
                 {
-                    //if (OnFailure != null)
-                    //{
-                    //    OnFailure(this, new GenericArgs<AggregateException>(
-                    //        new AggregateException(error)));
-                    //}
+                    if (OnFailure != null)
+                    {
+                        OnFailure(this, new GenericArgs<AggregateException>(
+                            new AggregateException(error)));
+                    }
                 }
             }
 

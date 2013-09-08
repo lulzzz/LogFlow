@@ -9,15 +9,15 @@ namespace LogFlow
     {
         private LogLevel minLevel;
 
-        public AbstractWriter(LogTarget target, int batchSize, TimeSpan timeout)
+        public AbstractWriter(LogTarget target, int batchSize, TimeSpan? timeout)
         {
             Contract.Requires(Enum.IsDefined(typeof(LogTarget), target));
             Contract.Requires(batchSize >= 1);
-            Contract.Requires(timeout >= TimeSpan.Zero);
+            Contract.Requires((timeout == null) || (timeout >= TimeSpan.Zero));
 
             Target = target;
             BatchSize = batchSize;
-            Timeout = timeout;
+            Timeout = timeout.HasValue ? timeout.Value : TimeSpan.FromSeconds(5);
 
             MinLevel = LogLevel.Error;
         }
