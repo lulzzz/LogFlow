@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace LogFlow.Demo
 {
@@ -10,9 +6,15 @@ namespace LogFlow.Demo
     {
         static void Main(string[] args)
         {
-            var fileWriter = new RollingFileWriter("Logs", true);
+            var writer = new RollingFileWriter("Logs",
+                typeof(Program).Assembly.GetName().Name, RollOn.Hour);
 
-            var logger = new Logger(null);
+            var logger = new Logger(writer);
+
+            for (var i = 0; i < writer.BatchSize + 3; i++)
+                logger.Log(LogLevel.Info, "Test{0:000}", i);
+
+            Console.ReadKey();
         }
     }
 }

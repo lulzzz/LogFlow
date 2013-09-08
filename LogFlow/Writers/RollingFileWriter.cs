@@ -26,11 +26,13 @@ namespace LogFlow
             this.path = path;
             this.prefix = prefix;
             this.rollOn = rollOn;
+
+            AutoFlush = true;
         }
 
         public bool AutoFlush { get; set; }
 
-        internal override void Setup()
+        internal override async void Setup()
         {
             string date = null;
 
@@ -52,7 +54,11 @@ namespace LogFlow
                     break;
             }
 
-            var fileName = Path.Combine(path, string.Format("{0}_{1}.log", prefix, date));
+            var fileName = Path.Combine(
+                path, string.Format("{0}_{1}.log", prefix, date));
+
+            if (!Directory.Exists(path))
+                Directory.CreateDirectory(path);
 
             writer = new StreamWriter(fileName);
 
@@ -66,12 +72,6 @@ namespace LogFlow
 
         internal override async Task WriteAsync(IEnumerable<LogItem> logItems)
         {
-            await Task.Run(() =>
-                {
-                    if (!Directory.Exists(path))
-                        Directory.CreateDirectory(path);
-                });
-
             var sb = new StringBuilder();
 
             foreach (var logItem in logItems)
