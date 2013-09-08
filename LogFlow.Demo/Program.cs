@@ -45,9 +45,9 @@ namespace LogFlow.Demo
                 logger.Log(LogLevel.Info, "Test{0:000}", i);
 
             Console.WriteLine("Press any key to terminate (NOTE: if this is done before the {0}-second timeout,", TIMEOUTSECONDS);
-            Console.WriteLine("elapses, the second batch of log items will not be persisted to disk.  All of");
+            Console.WriteLine("elapses, the second batch of log items will NOT be persisted to disk.  All of");
             Console.WriteLine("the log items will, however, be written to the Console right away, since the");
-            Console.WriteLine("default ConsoleWriter ignores batching)...");
+            Console.WriteLine("default ConsoleWriter ignores batching!)...");
 
             Console.WriteLine();
 
