@@ -18,7 +18,7 @@ namespace LogFlow
 
         public RollingFileWriter(string path, string prefix, RollOn rollOn,
             int batchSize = 50, TimeSpan? timeout = null) :
-            base(LogTarget.RollingFile, batchSize, timeout)
+            base(LogTarget.RollingFile, batchSize, GetTimeout(timeout))
         {
             Contract.Requires(path.IsPath());
             Contract.Requires(!string.IsNullOrWhiteSpace(prefix));
@@ -121,6 +121,11 @@ namespace LogFlow
             }
 
             await writer.WriteAsync(sb.ToString());
+        }
+
+        private static TimeSpan GetTimeout(TimeSpan? timeout)
+        {
+            return timeout.HasValue ? timeout.Value : TimeSpan.FromSeconds(5);
         }
     }
 }
